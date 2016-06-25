@@ -23,6 +23,12 @@ apply plugin: "org.sonarqube"
 apply plugin: "maven-publish"
 apply from: file("gradle/docker.gradle")
 
+if (System.env.BUILD_NUMBER) {
+    buildId = "$System.env.BUILD_NUMBER"
+}
+
+project.version = "$majorReleaseId.$minorReleaseId.$buildId"
+
 jar {
     baseName = "$project.name"
     version =  "$version"
@@ -53,11 +59,11 @@ sonarqube {
         property "sonar.host.url", "$sonarUrl"
         property "sonar.login", "$sonarUsername"
         property "sonar.password", "$sonarPassword"
-        property "sonar.projectName", "$applicationName-${project.name}"
-        property "sonar.projectKey", "$group.$applicationName:${project.name}"
+        property "sonar.projectName", "$project.name"
+        property "sonar.projectKey", "$group.$project.name"
         property "sonar.links.ci", "$System.env.BUILD_URL"
         property "sonar.links.scm", "$System.env.GIT_URL"
-        property "sonar.jacoco.reportPath", "${buildDir.name}/jacoco.exec"
+        property "sonar.jacoco.reportPath", "$buildDir.name/jacoco.exec"
         property "sonar.java.coveragePlugin", "jacoco"
     }
 }
@@ -68,18 +74,18 @@ publishing {
     publications {
         plugin(MavenPublication) {
             from components.java
-            artifactId "db-migrate-plugin"
+            artifactId "$project.name"
 
             pom.withXml {
                 def root = asNode()
-                root.appendNode("name", "Flyway plugin")
-                root.appendNode("description", "Plugin for managing database migration.")
-                root.appendNode('inceptionYear', '2016')
+                root.appendNode("name", "$project.name")
+                root.appendNode("description", "$project.name")
+                root.appendNode("inceptionYear", '2016')
 
-                def license = root.appendNode('licenses').appendNode('license')
-                license.appendNode('name', 'The Apache Software License, Version 2.0')
-                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
-                license.appendNode('distribution', 'repo')
+                def license = root.appendNode("licenses").appendNode("license")
+                license.appendNode("name", "The Apache Software License, Version 2.0")
+                license.appendNode("url", "http://www.apache.org/licenses/LICENSE-2.0.txt")
+                license.appendNode("distribution", "repo")
 
                 def developer = root.appendNode("developers").appendNode("developer")
                 developer.appendNode("id", "khainguyentuong")
@@ -105,4 +111,4 @@ task wrapper(type: Wrapper) {
     gradleVersion = "2.14"
 }
 
-defaultTasks("clean", "build", "sonarqube")
+defaultTasks("clean", "publish", "sonarqube")
