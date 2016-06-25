@@ -108,8 +108,12 @@ publishing {
     }
 }
 
+htmlDependencyReport {
+    projects = project.allprojects
+}
+
 task wrapper(type: Wrapper) {
     gradleVersion = "2.14"
 }
 
-defaultTasks("clean", "publish", "sonarqube")
+defaultTasks("clean", "publish", "sonarqube", "htmlDependencyReport")
