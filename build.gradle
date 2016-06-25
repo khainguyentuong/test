@@ -1,16 +1,26 @@
 buildscript {
     repositories {
-        mavenCentral()
+        maven {
+            url("$artifactoryLibraryRepo")
+            credentials {
+                username = "$artifactoryUsername"
+                password = "$artifactoryPassword"
+            }
+        }
     }
 	
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.3.5.RELEASE")
+        classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.0.1")
     }
 }
 
 apply plugin: "java"
 apply plugin: "idea"
+apply plugin: "groovy"
 apply plugin: "spring-boot"
+apply plugin: "org.sonarqube"
+apply plugin: "maven-publish"
 apply from: file("gradle/docker.gradle")
 
 jar {
@@ -19,7 +29,14 @@ jar {
 }
 
 repositories {
-    mavenCentral()
+    maven {
+        url("$artifactoryLibraryRepo")
+
+        credentials {
+            username = "$artifactoryUsername"
+            password = "$artifactoryPassword"
+        }
+    }
 }
 
 sourceCompatibility = 1.8
@@ -31,8 +48,61 @@ dependencies {
     testCompile("org.springframework.boot:spring-boot-starter-test")
 }
 
+sonarqube {
+    properties {
+        property "sonar.host.url", "$sonarUrl"
+        property "sonar.login", "$sonarUsername"
+        property "sonar.password", "$sonarPassword"
+        property "sonar.projectName", "$applicationName-${project.name}"
+        property "sonar.projectKey", "$group.$applicationName:${project.name}"
+        property "sonar.links.ci", "$System.env.BUILD_URL"
+        property "sonar.links.scm", "$System.env.GIT_URL"
+        property "sonar.jacoco.reportPath", "${buildDir.name}/jacoco.exec"
+        property "sonar.java.coveragePlugin", "jacoco"
+    }
+}
+
+task allDeps(type: DependencyReportTask) {}
+
+publishing {
+    publications {
+        plugin(MavenPublication) {
+            from components.java
+            artifactId "db-migrate-plugin"
+
+            pom.withXml {
+                def root = asNode()
+                root.appendNode("name", "Flyway plugin")
+                root.appendNode("description", "Plugin for managing database migration.")
+                root.appendNode('inceptionYear', '2016')
+
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+
+                def developer = root.appendNode("developers").appendNode("developer")
+                developer.appendNode("id", "khainguyentuong")
+                developer.appendNode("name", "Khai Nguyen")
+                developer.appendNode("email", "khainguyentuong@gmail.com")
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url("$artifactoryReleaseRepo")
+
+            credentials {
+                username = "$artifactoryUsername"
+                password = "$artifactoryPassword"
+            }
+        }
+    }
+}
+
 task wrapper(type: Wrapper) {
     gradleVersion = "2.14"
 }
 
-defaultTasks("clean", "runDocker")
+defaultTasks("clean", "build", "sonarqube")
