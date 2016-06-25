@@ -21,6 +21,7 @@ apply plugin: "groovy"
 apply plugin: "spring-boot"
 apply plugin: "org.sonarqube"
 apply plugin: "maven-publish"
+apply plugin: "project-report"
 apply from: file("gradle/docker.gradle")
 
 if (System.env.BUILD_NUMBER) {
