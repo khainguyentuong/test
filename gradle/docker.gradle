@@ -22,19 +22,19 @@ task pushDockerImage (type: Exec) {
 task runDockerImage (type: Exec) {
 	dependsOn buildDockerImage
 	if (project.dockerPort) {
-	    commandLine "docker", "run", "-i", "-p", "$project.dockerPort:$project.dockerPort", "--name", "$project.name", "$registryServer/$project.registryRepo/$project.name:$version"
+	    commandLine "docker", "run", "--rm", "-i", "-p", "$project.dockerPort:$project.dockerPort", "--name", "$project.name", "$registryServer/$project.registryRepo/$project.name:$version"
 	}
     else {
-	    commandLine "docker", "run", "-i", "--name", "$project.name", "$registryServer/$project.registryRepo/$project.name:$version"
+	    commandLine "docker", "run", "--rm", "-i", "--name", "$project.name", "$registryServer/$project.registryRepo/$project.name:$version"
 	}
 }
 
 task runDocker (type: Exec) {
 	if (project.dockerPort) {
-	    commandLine "docker", "run", "-i", "-p", "$project.dockerPort:$project.dockerPort", "--name", "$project.name", "$registryServer/$project.registryRepo/$project.name:$version"
+	    commandLine "docker", "run", "--rm", "-i", "-p", "$project.dockerPort:$project.dockerPort", "--name", "$project.name", "$registryServer/$project.registryRepo/$project.name:$version"
 	}
     else {
-	    commandLine "docker", "run", "-i", "--name", "$project.name", "$registryServer/$project.registryRepo/$project.name:$version"
+	    commandLine "docker", "run", "--rm", "-i", "--name", "$project.name", "$registryServer/$project.registryRepo/$project.name:$version"
 	}
 }
 
