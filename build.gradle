@@ -23,12 +23,7 @@ apply plugin: "org.sonarqube"
 apply plugin: "maven-publish"
 apply plugin: "project-report"
 apply from: file("gradle/docker.gradle")
-
-if (System.env.BUILD_NUMBER) {
-    buildId = "$System.env.BUILD_NUMBER"
-}
-
-project.version = "$majorReleaseId.$minorReleaseId.$buildId"
+apply from: file("gradle/versioning.gradle")
 
 jar {
     baseName = "$project.name"
@@ -69,8 +64,6 @@ sonarqube {
     }
 }
 
-task allDeps(type: DependencyReportTask) {}
-
 publishing {
     publications {
         plugin(MavenPublication) {
@@ -107,6 +100,8 @@ publishing {
         }
     }
 }
+
+task allDeps(type: DependencyReportTask) {}
 
 htmlDependencyReport {
     projects = project.allprojects
